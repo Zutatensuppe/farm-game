@@ -1,0 +1,48 @@
+<html>
+<body>
+<div id="el"></div>
+<script>
+const match = document.location.hash.match(/access_token=(\w+)/)
+const accessToken = match ? match[1] : null
+const el = document.getElementById('el')
+if (accessToken) {
+  el.innerHTML = 'Access token: <input type="text" value="' + accessToken + '" />'
+} else {
+  // all scopes, see https://dev.twitch.tv/docs/authentication/#scopes
+  const scopes = [
+    // 'analytics:read:extensions',
+    // 'analytics:read:games',
+    // 'bits:read',
+    // 'channel:edit:commercial',
+    // 'channel:manage:broadcast',
+    // 'channel:manage:extensions',
+    // 'channel:manage:redemptions',
+    // 'channel:manage:videos',
+    // 'channel:read:editors',
+    // 'channel:read:hype_train',
+    'channel:read:redemptions',
+    // 'channel:read:stream_key',
+    // 'channel:read:subscriptions',
+    // 'clips:edit',
+    // 'moderation:read',
+    // 'user:edit',
+    // 'user:edit:follows',
+    // 'user:read:blocked_users',
+    // 'user:manage:blocked_users',
+    // 'user:read:broadcast',
+    // 'user:read:email',
+  ]
+  const clientId = {{ clientId|json_encode|raw }}
+  const loc = document.location
+  const redirectUri = `${loc.protocol}//${loc.host}`
+  const href = 'https://id.twitch.tv/oauth2/authorize'
+    + '?response_type=token'
+    + `&client_id=${clientId}`
+    + `&redirect_uri=${redirectUri}`
+    + `&scope=${scopes.join('+')}`
+  el.innerHTML = '<a href="'+href+'">Authorize</a>'
+}
+
+</script>
+</body>
+</html>

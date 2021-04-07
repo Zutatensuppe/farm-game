@@ -1,0 +1,80 @@
+// note: http and ws are launched unsecure (no ssl)
+// a way to use ssl with this is to use nginx as a proxy, like this:
+//
+// server {
+//   listen 443;
+//
+//   server_name my_farm_game.example;
+//
+//   # enable ssl
+//   ssl on;
+//   ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+//   ssl_certificate /etc/letsencrypt/my_farm_game.example/cert.pem;
+//   ssl_certificate_key /etc/letsencrypt/my_farm_game.example/privkey.pem;
+//
+//   # proxy to the webserver
+//   location / {
+//     proxy_pass http://127.0.0.1:1337;
+//   }
+//
+//   # proxy to the websocketserver
+//   location ~ ^/ws(/|$) {
+//     proxy_pass http://127.0.0.1:1338;
+//     proxy_http_version 1.1;
+//     proxy_set_header Upgrade $http_upgrade;
+//     proxy_set_header Connection "Upgrade";
+//     proxy_set_header Host $host;
+//   }
+// }
+
+module.exports = {
+  http: {
+    hostname: 'localhost',
+    port: 1337,
+  },
+  ws: {
+    hostname: 'localhost',
+    port: 1338,
+    // in case nginx or another proxy is used for ssl, connectstring
+    // protocol should be switched from ws to wss
+    connectstring: `ws://localhost:1338/ws`,
+  },
+  db: {
+    file: __dirname + '/../db.sqlite',
+    patches_dir: __dirname + '/dbpatches',
+  },
+  bot: {
+    // the bot credentials
+    // ---------------------------------------------------------------
+    // see https://dev.twitch.tv/docs/irc/#building-the-bot
+    username: 'my_bot_app',
+    password: '',
+    client_id: '',
+    // The client_secret is only required to get a
+    // channel_id by channel_name via helix client for the
+    // twitch_channels below.
+    // If you fill in the channel_ids manually below, you dont need to
+    // fill in a client_secret here.
+    client_secret: '',
+
+    // channels in which the bot should operate
+    // ---------------------------------------------------------------
+    // Farm game atm can use channel point redemption system.
+    // For this to work, the `my_bot_app` configured above needs to be
+    // able to read channel point redemptions in 'my_channel_name'
+    // because they can not be read from chat alone.
+    // This requires special authentication, so user `my_channel_name`
+    // must log in to twitch and allow `my_bot_app` to read channel
+    // point redemptions.
+    // Only channel_name needs to be filled at the start,
+    // the exact instructions on what to fill for channel_id and
+    // access_token are given when `npm run start` is executed.
+    twitch_channels: [
+      {
+        channel_name: 'my_channel_name',
+        channel_id: '',
+        access_token: '',
+      },
+    ],
+  },
+}
