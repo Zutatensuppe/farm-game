@@ -40,7 +40,7 @@ class TwitchBot {
         }
         console.log(`${target}| * Executed ${rawCmd.name} command`)
       }
-      await m.onChatMsg(this.chatClient, target, context, msg);
+      await farmGame.onChatMsg(this.chatClient, target, context, msg);
     })
 
     // Called every time the bot connects to Twitch chat
