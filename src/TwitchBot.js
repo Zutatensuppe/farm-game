@@ -10,11 +10,14 @@ class TwitchBot {
       return
     }
 
+    // https://github.com/tmijs/docs/blob/gh-pages/_posts/v1.4.2/2019-03-03-Configuration.md#configuration
     this.chatClient = new tmi.client({
       identity: {
-        username: this.conf.user,
-        password: this.conf.pass,
-        client_id: this.conf.client_id,
+        username: this.conf.username,
+        password: this.conf.password,
+      },
+      options: {
+        clientId: this.conf.client_id,
       },
       channels: this.conf.twitch_channels.map(ch => ch.channel_name),
       connection: {
