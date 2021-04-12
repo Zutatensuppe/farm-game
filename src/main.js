@@ -16,24 +16,35 @@ const db = new Db(config.db.file)
 // make sure db is at latest patch level each start..
 db.patch(config.db.patches_dir, false)
 
+const START_MODE = {
+  NORMAL: 'normal',
+  TWITCH_AUTH: 'twitch-auth',
+  NONE: 'none',
+}
 ;(async () => {
-  let canStart = true
+  let startMode = START_MODE.NORMAL
   // make sure config is ok (access tokens etc exist)...
   for (let idx in config.bot.twitch_channels) {
     const ch = config.bot.twitch_channels[idx]
     const path = `user.twitch_channels[${idx}]`
     log('checking twitch_channel "' + ch.channel_name + '"')
     if (!ch.channel_id) {
-      canStart = false
       const helixClient = new HelixClient(
         config.bot.client_id,
         config.bot.client_secret
       )
       const id = await helixClient.getUserIdByName(ch.channel_name)
-      log(`Please fill ${path}.channel_id: ${id}`)
+      if (id === null) {
+        startMode = START_MODE.NONE
+        log(`Please fill ${path}.channel_name with a correct channel name`)
+        break
+      } else {
+        startMode = START_MODE.TWITCH_AUTH
+        log(`Please fill ${path}.channel_id: ${id}`)
+      }
     }
     if (!ch.access_token) {
-      canStart = false
+      startMode = START_MODE.TWITCH_AUTH
       const appUri = 'https://dev.twitch.tv/console/apps/' + config.bot.client_id
       const port = config.http.port
       const hostname = config.http.hostname
@@ -48,9 +59,33 @@ db.patch(config.db.patches_dir, false)
     }
   }
 
-  let gracefulShutdown = (signal) => {}
+  const deferred = []
+  const defer = (fn) => deferred.push(fn)
+  const gracefulShutdown = (signal) => {
+    if (signal) {
+      log(`${signal} received...`)
+    }
 
-  if (!canStart) {
+    deferred.forEach(fn => fn())
+
+    log('shutting down...')
+    process.exit()
+  }
+
+  // used by nodemon
+  process.once('SIGUSR2', function () {
+    gracefulShutdown('SIGUSR2')
+  });
+
+  process.once('SIGINT', function (code) {
+    gracefulShutdown('SIGINT')
+  });
+
+  process.once('SIGTERM', function (code) {
+    gracefulShutdown('SIGTERM')
+  });
+
+  if (startMode === START_MODE.TWITCH_AUTH) {
     const app = express()
     app.get('/', async (req, res) => {
       res.send(await render('templates/twitch.twig', {
@@ -60,16 +95,11 @@ db.patch(config.db.patches_dir, false)
     const webServer = new WebServer(config.http)
     webServer.listen(app)
 
-    gracefulShutdown = (signal) => {
-      log(`${signal} received...`)
-
+    defer(() => {
       log('shutting down webserver...')
       webServer.close()
-
-      log('shutting down...')
-      process.exit()
-    }
-  } else {
+    })
+  } else if (startMode === START_MODE.NORMAL) {
     const twitchBot = new TwitchBot(config.bot)
     const storage = new ModuleStorage(db)
     const webServer = new WebServer(config.http)
@@ -86,30 +116,15 @@ db.patch(config.db.patches_dir, false)
     webServer.listen(app)
     twitchBot.connect(farmGame)
 
-    gracefulShutdown = (signal) => {
-      log(`${signal} received...`)
-
+    defer(() => {
       log('shutting down webserver...')
       webServer.close()
-
+    })
+    defer(() => {
       log('shutting down websocketserver...')
       webSocketServer.close()
-
-      log('shutting down...')
-      process.exit()
-    }
+    })
+  } else {
+    gracefulShutdown('')
   }
-
-  // used by nodemon
-  process.once('SIGUSR2', function () {
-    gracefulShutdown('SIGUSR2')
-  });
-
-  process.once('SIGINT', function (code) {
-    gracefulShutdown('SIGINT')
-  });
-
-  process.once('SIGTERM', function (code) {
-    gracefulShutdown('SIGTERM')
-  });
 })()
