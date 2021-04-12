@@ -1,4 +1,7 @@
 const WebSocket = require('ws')
+const { logger } = require('./fn.js')
+
+const log = logger(__filename)
 
 const pingInterval = 30000
 
@@ -18,7 +21,7 @@ class WebSocketServer {
     this._websocketserver.on('connection', (socket, request, client) => {
       const pathname = new URL(this.conf.connectstring).pathname
       if (request.url.indexOf(pathname) !== 0) {
-        console.log('bad request url: ', request.url)
+        log('bad request url: ', request.url)
         socket.close()
         return
       }
@@ -30,7 +33,7 @@ class WebSocketServer {
 
       const evts = farmGame.getWsEvents()
       socket.on('message', (data) => {
-        console.log(`ws| `, data)
+        log(`ws| `, data)
         const d = JSON.parse(data)
         if (!d.event) {
           return
@@ -62,7 +65,7 @@ class WebSocketServer {
 
   notifyOne(data, socket) {
     if (socket.isAlive) {
-      console.log(`notifying (${data.event})`)
+      log(`notifying (${data.event})`)
       socket.send(JSON.stringify(data))
     }
   }

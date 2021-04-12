@@ -1,8 +1,17 @@
+const path = require('path')
+
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+const logger = (filename, ...pre) => {
+  const b = path.basename(filename)
+  return (...args) => console.log(`[${b}]`, ...pre, ...args)
+}
+
+const log = logger(__filename)
 
 function getRandom(array) {
   return array[getRandomInt(0, array.length - 1)]
@@ -27,7 +36,7 @@ const render = async (template, data) => {
 const sayFn = (client, target) => (msg) => {
   const targets = target ? [target] : client.channels
   targets.forEach(t => {
-    console.log(`saying in ${t}: ${msg}`)
+    log(`saying in ${t}: ${msg}`)
     client.say(t, msg).catch(_ => {})
   })
 }
@@ -59,6 +68,7 @@ const SECOND = 1000 * MS
 const MINUTE = 60 * SECOND
 
 module.exports = {
+  logger,
   sayFn,
   parseCommandFromMessage,
   render,

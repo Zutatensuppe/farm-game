@@ -7,7 +7,9 @@ const WebSocketServer = require('./WebSocketServer.js')
 const TwitchBot = require('./TwitchBot.js')
 const HelixClient = require('./TwitchHelixClient.js')
 const express = require('express')
-const { render } = require('./fn.js')
+const { render, logger } = require('./fn.js')
+
+const log = logger(__filename)
 
 const db = new Db(config.db.file)
 
@@ -20,15 +22,15 @@ db.patch(config.db.patches_dir, false)
   for (let idx in config.bot.twitch_channels) {
     const ch = config.bot.twitch_channels[idx]
     const path = `user.twitch_channels[${idx}]`
-    console.log('checking twitch_channel "' + ch.channel_name + '"')
+    log('checking twitch_channel "' + ch.channel_name + '"')
     if (!ch.channel_id) {
       canStart = false
       const helixClient = new HelixClient(
         config.bot.client_id,
         config.bot.client_secret
       )
-      const id = await helixClient.getUserIdByName(ch.channel_name);
-      console.log(`Please fill ${path}.channel_id: ${id}`)
+      const id = await helixClient.getUserIdByName(ch.channel_name)
+      log(`Please fill ${path}.channel_id: ${id}`)
     }
     if (!ch.access_token) {
       canStart = false
@@ -36,13 +38,13 @@ db.patch(config.db.patches_dir, false)
       const port = config.http.port
       const hostname = config.http.hostname
       const authUri = 'http://' + hostname + ':' + port
-      console.log(`1. login to twitch as owner of ${config.bot.user} app`)
-      console.log(`2. open ${appUri}`)
-      console.log(`3. add ${authUri} to OAuth Redirect URLs`)
-      console.log(`4. login to twitch as ${ch.channel_name}`)
-      console.log(`5. open ${authUri}`)
-      console.log(`6. click [Authorize]`)
-      console.log(`7. copy the access_token and put it into ${path}.access_token`)
+      log(`1. login to twitch as owner of ${config.bot.user} app`)
+      log(`2. open ${appUri}`)
+      log(`3. add ${authUri} to OAuth Redirect URLs`)
+      log(`4. login to twitch as ${ch.channel_name}`)
+      log(`5. open ${authUri}`)
+      log(`6. click [Authorize]`)
+      log(`7. copy the access_token and put it into ${path}.access_token`)
     }
   }
 
@@ -59,12 +61,12 @@ db.patch(config.db.patches_dir, false)
     webServer.listen(app)
 
     gracefulShutdown = (signal) => {
-      console.log(`${signal} received...`)
+      log(`${signal} received...`)
 
-      console.log('shutting down webserver...')
+      log('shutting down webserver...')
       webServer.close()
 
-      console.log('shutting down...')
+      log('shutting down...')
       process.exit()
     }
   } else {
@@ -85,15 +87,15 @@ db.patch(config.db.patches_dir, false)
     twitchBot.connect(farmGame)
 
     gracefulShutdown = (signal) => {
-      console.log(`${signal} received...`)
+      log(`${signal} received...`)
 
-      console.log('shutting down webserver...')
+      log('shutting down webserver...')
       webServer.close()
 
-      console.log('shutting down websocketserver...')
+      log('shutting down websocketserver...')
       webSocketServer.close()
 
-      console.log('shutting down...')
+      log('shutting down...')
       process.exit()
     }
   }

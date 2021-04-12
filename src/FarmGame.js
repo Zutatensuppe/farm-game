@@ -1,6 +1,8 @@
 const fn = require('./fn.js')
 const { allPlaces, allThings, allActions, allGlobalEvents } = require('./FarmGameData.js')
 
+const log = fn.logger(__filename)
+
 const TICK_INTERVAL_SEC = 1
 
 const INACTIVE_TIME = 5 * fn.MINUTE
@@ -31,7 +33,7 @@ const userstate = {
 // allThings.forEach(thing => {
 //   bla.push(recipeText(thing.thing))
 // })
-// console.log(bla.join(' '))
+// log(bla.join(' '))
 
 function userinfoByContext (context) {
   return {
@@ -208,7 +210,7 @@ function handle (that, item, user) {
       ['user_change_inventory', payload],
     ]
   }
-  console.log(that, item, user.info)
+  log(that, item, user.info)
   throw new Error('[2021-02-07] Unknown thing to handle')
 }
 
@@ -936,7 +938,7 @@ class FarmGame {
     // { id, channel_id, title, prompt, cost, ... }
     // redemption.user
     // { id, login, display_name}
-    console.log(redemption)
+    log(redemption)
   }
 }
 

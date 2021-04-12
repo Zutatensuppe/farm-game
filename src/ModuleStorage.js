@@ -1,3 +1,7 @@
+const { logger } = require('./fn.js')
+
+const log = logger(__filename)
+
 class ModuleStorage {
   constructor(db) {
     this.db = db
@@ -10,7 +14,7 @@ class ModuleStorage {
       const data = row ? JSON.parse('' + row.data) : null
       return data ? Object.assign({}, def, data) : def
     } catch (e) {
-      console.log(e)
+      log(e)
       return def
     }
   }

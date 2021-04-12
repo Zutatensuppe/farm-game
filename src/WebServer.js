@@ -1,3 +1,7 @@
+const { logger } = require('./fn.js')
+
+const log = logger(__filename)
+
 class WebServer {
   constructor(httpConf) {
     this.conf = httpConf
@@ -11,7 +15,7 @@ class WebServer {
     this.handle = app.listen(
       port,
       hostname,
-      () => console.log(`server running on ${addr}`)
+      () => log(`server running on ${addr}`)
     )
   }
 

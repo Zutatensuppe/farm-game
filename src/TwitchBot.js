@@ -2,11 +2,13 @@ const tmi = require('tmi.js')
 const twitchPubSub = require('./TwitchPubSub.js')
 const fn = require('./fn.js')
 
+const log = fn.logger(__filename)
+
 class TwitchBot {
   constructor(botConf) {
     this.conf = botConf
     if (this.conf.twitch_channels.length === 0) {
-      console.log(`* No twitch channels configured`)
+      log(`* No twitch channels configured`)
       return
     }
 
@@ -31,24 +33,24 @@ class TwitchBot {
   connect(farmGame) {
     this.chatClient.on('message', async (target, context, msg, self) => {
       if (self) { return; } // Ignore messages from the bot
-      console.log(`${context.username}@${target}: ${msg}`)
+      log(`${context.username}@${target}: ${msg}`)
       const rawCmd = fn.parseCommandFromMessage(msg)
       const commands = farmGame.getCommands() || {}
       const cmdDefs = commands[rawCmd.name] || []
       for (let cmdDef of cmdDefs) {
-        console.log(`${target}| * Executing ${rawCmd.name} command`)
+        log(`${target}| * Executing ${rawCmd.name} command`)
         const r = await cmdDef.fn(rawCmd, this.chatClient, target, context, msg)
         if (r) {
-          console.log(`${target}| * Returned: ${r}`)
+          log(`${target}| * Returned: ${r}`)
         }
-        console.log(`${target}| * Executed ${rawCmd.name} command`)
+        log(`${target}| * Executed ${rawCmd.name} command`)
       }
       await farmGame.onChatMsg(this.chatClient, target, context, msg);
     })
 
     // Called every time the bot connects to Twitch chat
     this.chatClient.on('connected', (addr, port) => {
-      console.log(`* Connected to ${addr}:${port}`)
+      log(`* Connected to ${addr}:${port}`)
     })
 
     // connect to PubSub websocket
