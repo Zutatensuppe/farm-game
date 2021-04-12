@@ -22,15 +22,19 @@ class HelixClient {
   async getUserIdByName (userName) {
     const accessToken = await this.getAccessToken()
     const url = `https://api.twitch.tv/helix/users?login=${userName}`
-    const res = await fetch(url, {
-      method: 'get',
-      headers: {
-        'Client-ID': this.clientId,
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    })
-    const json = await res.json()
-    return json.data[0].id
+    try {
+      const res = await fetch(url, {
+        method: 'get',
+        headers: {
+          'Client-ID': this.clientId,
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      })
+      const json = await res.json()
+      return json.data[0].id
+    } catch (e) {
+      return null
+    }
   }
 }
 
